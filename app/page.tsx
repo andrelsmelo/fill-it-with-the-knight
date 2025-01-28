@@ -32,11 +32,10 @@ interface SquareProps {
   y: number
   isKnight: boolean
   visited: boolean
-  isCurrent: boolean
   onClick: () => void
 }
 
-const Square: React.FC<SquareProps> = ({ x, y, isKnight, visited, isCurrent, onClick }) => {
+const Square: React.FC<SquareProps> = ({ x, y, isKnight, visited, onClick }) => {
   const getBackgroundColor = () => {
     if (visited) return 'bg-green-500';
     if (isKnight) return 'bg-gray-500';
@@ -155,7 +154,6 @@ export default function Home() {
               key={`${x},${y}`}
               isKnight={x === knightPos[0] && y === knightPos[1]}
               visited={visited.has(`${x},${y}`)}
-              isCurrent={x === knightPos[0] && y === knightPos[1]}
               onClick={() => handleMove(x, y)}
             />
           )),
