@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const knightMoves = [
   [2, 1], [1, 2], [-1, 2], [-2, 1],
@@ -21,9 +21,9 @@ function Square({ isKnight, visited, isCurrent, onClick }: SquareProps) {
       onClick={onClick}
       className={`flex items-center justify-center border cursor-pointer
         ${visited ? "bg-green-500" : isCurrent ? "bg-gray-500" : "bg-white"}
-        ${!visited && !isCurrent && (Math.floor((visited as any).index / 8) + Math.floor((visited as any).index / 8)) % 2 === 0
+        ${!visited && !isCurrent && ((Math.floor((isKnight as any)?.index / 8) + Math.floor((isKnight as any).index / 8)) % 2 === 0
           ? 'bg-white'
-          : 'bg-gray-400'}
+          : 'bg-gray-400')}
         aspect-square w-full`}
     >
       {isKnight && "♞"}
@@ -32,8 +32,8 @@ function Square({ isKnight, visited, isCurrent, onClick }: SquareProps) {
 }
 
 export default function Home() {
-  const [knightPos, setKnightPos] = useState([1, 7]);
-  const [visited, setVisited] = useState(new Set(["1,7"]));
+  const [knightPos, setKnightPos] = useState<[number, number]>([1, 7]);
+  const [visited, setVisited] = useState<Set<string>>(new Set(["1,7"]));
   const [gameOver, setGameOver] = useState(false);
 
   const handleMove = (x: number, y: number) => {
@@ -45,7 +45,6 @@ export default function Home() {
     if (validMove && !visited.has(`${x},${y}`)) {
       setKnightPos([x, y]);
       setVisited(new Set([...visited, `${x},${y}`]));
-      setGameOver(false);
     }
   };
 
@@ -55,20 +54,21 @@ export default function Home() {
     setGameOver(false);
   };
 
-  const checkGameOver = () => {
+  useEffect(() => {
     const [kx, ky] = knightPos;
     const canMove = knightMoves.some(
-      ([dx, dy]) => !visited.has(`${kx + dx},${ky + dy}`) && kx + dx >= 0 && kx + dx < 8 && ky + dy >= 0 && ky + dy < 8
+      ([dx, dy]) =>
+        !visited.has(`${kx + dx},${ky + dy}`) &&
+        kx + dx >= 0 &&
+        kx + dx < 8 &&
+        ky + dy >= 0 &&
+        ky + dy < 8
     );
-    return !canMove;
-  };
 
-  const isGameComplete = visited.size === 64;
-  const isStuck = checkGameOver();
-
-  if (isGameComplete || isStuck) {
-    setGameOver(true);
-  }    
+    if (!canMove || visited.size === 64) {
+      setGameOver(true);
+    }
+  }, [knightPos, visited]);
 
   return (
     <div className="flex flex-col items-center p-4 justify-center w-screen h-screen">
@@ -85,10 +85,10 @@ export default function Home() {
           ))
         )}
       </div>
-      {isGameComplete && (
+      {gameOver && visited.size === 64 && (
         <div className="mt-4 text-green-600 font-bold">Parabéns! Você venceu!</div>
       )}
-      {(isStuck && !isGameComplete) || gameOver && (
+      {gameOver && visited.size < 64 && (
         <div className="mt-4 text-red-600 font-bold">Você não pode mais se mover. Fim de jogo!</div>
       )}
       <button
