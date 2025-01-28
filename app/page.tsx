@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect} from 'react'
+import { useState, useEffect, FormEvent} from 'react'
 
 import Link from 'next/link'
-import { Info } from '@phosphor-icons/react'
+import { Gear, Info } from '@phosphor-icons/react'
 import {
   Dialog,
   DialogClose,
@@ -15,6 +15,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 const knightMoves = [
   [2, 1],
@@ -45,7 +47,7 @@ const Square: React.FC<SquareProps> = ({ x, y, isKnight, visited, onClick }) => 
   return (
     <div
       onClick={onClick}
-      className={`flex items-center justify-center border cursor-pointer ${getBackgroundColor()} aspect-square w-full`}
+      className={`flex items-center justify-center border cursor-pointer ${getBackgroundColor()} aspect-square w-full text-xs`}
     >
       {isKnight && '♞'}
     </div>
@@ -57,6 +59,7 @@ export default function Home() {
   const [knightPos, setKnightPos] = useState<[number, number]>([1, 7])
   const [visited, setVisited] = useState<Set<string>>(new Set(['1,7']))
   const [gameOver, setGameOver] = useState(false)
+  const [boardSize, setBoardSize] = useState<[number, number]>([8, 8])
 
   const handleMove = (x: number, y: number) => {
     const [kx, ky] = knightPos
@@ -75,8 +78,6 @@ export default function Home() {
     setVisited(new Set(['1,7']))
     setGameOver(false)
   }
-
-
 
   useEffect(() => {
     const checkGameOver = () => {
@@ -100,6 +101,16 @@ export default function Home() {
     
     checkGameOver()
   }, [knightPos, visited])
+
+  const handleSizeChange = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    const width = parseInt((e.currentTarget[0] as HTMLInputElement).value, 10);
+    const height = parseInt((e.currentTarget[1] as HTMLInputElement).value, 10);
+    
+    setBoardSize([width, height]);
+  }
+  
   
   return (
     <div className="flex flex-col items-center p-4 justify-center w-screen h-screen">
@@ -144,10 +155,82 @@ export default function Home() {
         </DialogContent>
       </Dialog>
 
+      {/* Change Board Size */}
+      <Dialog>
+  <DialogTrigger asChild>
+    <Button variant="outline" className="absolute top-4 left-4">
+      <Gear size={24} />
+    </Button>
+  </DialogTrigger>
+  
+  <DialogContent className="sm:max-w-md">
+    <DialogHeader>
+      <DialogTitle>Alterar Tamanho do Tabuleiro</DialogTitle>
+      <DialogDescription>
+        Escolha o tamanho do tabuleiro para jogar.
+      </DialogDescription>
+    </DialogHeader>
+
+    <div className="flex flex-col my-4">
+      <p className="mb-4 text-gray-600">
+        O tabuleiro padrão é de 8x8, mas você pode escolher um tamanho
+        diferente para jogar. Insira os valores abaixo:
+      </p>
+
+      <form onSubmit={(e) => handleSizeChange(e)} className="space-y-4">
+        <div>
+          <Label htmlFor="rows" className="block text-sm font-medium text-gray-700">
+            Número de linhas
+          </Label>
+          <Input
+            id="rows"
+            type="number"
+            placeholder="Ex: 8"
+            min={4}
+            max={20}
+            className="mt-1 w-full"
+            required
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="columns" className="block text-sm font-medium text-gray-700">
+            Número de colunas
+          </Label>
+          <Input
+            id="columns"
+            type="number"
+            placeholder="Ex: 8"
+            min={4}
+            max={20}
+            className="mt-1 w-full"
+            required
+          />
+        </div>
+
+        <Button type="submit" className="w-full">
+          Alterar
+        </Button>
+      </form>
+    </div>
+
+    <DialogFooter className="sm:justify-start">
+      <DialogClose asChild>
+        <Button type="button" variant="secondary">
+          Fechar
+        </Button>
+      </DialogClose>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
       {/* Game Board */}
-      <div className="grid grid-cols-8 w-64 h-64 border">
-        {[...Array(8)].map((_, y) =>
-          [...Array(8)].map((_, x) => (
+      <div
+        style={{ gridTemplateColumns: `repeat(${boardSize[0]}, minmax(0, 1fr))` }}
+        className="grid w-96 h-96 border"
+      >
+        {[...Array(boardSize[1])].map((_, y) =>
+          [...Array(boardSize[0])].map((_, x) => (
             <Square
               x={x}
               y={y}
